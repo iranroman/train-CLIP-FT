@@ -42,7 +42,6 @@ class VideoClips:
             np.floor(d['video_duration'] * (self.frame_rate or d['video_fps']))
             for d in self.video_metadata
         ]
-        print(self.durations_in_frames)
         self.cumsum_frames = np.cumsum([
             d - (clip_size - 1)
             for d in self.durations_in_frames
@@ -79,11 +78,15 @@ class VideoClips:
         return VideoFileClip(video_path)
 
     def _get_video_segment(self, video, start, end, ):
-        return np.array([
+        clip_frames = [
             x for _, x in zip(
                 range(self.clip_size), 
                 video.subclip(start, end).iter_frames(self.frame_rate))
-        ])
+        ]
+        if self.clip_size == 1:
+            return clip_frames[0]
+        else:
+            return clip_frames
 
     def _get_video_metadata(self, path):
         return ffmpeg_parse_infos(str(path))
@@ -106,7 +109,7 @@ class VideoClips:
 
 
 class EpicKitchensAnnotations:
-    def __init__(self, ann_path: str, root_path: str, split: str='validation', filter_existing: bool=True, missing_text='unspecified') -> None:
+    def __init__(self, ann_path: str, root_path: str, split: str='train', filter_existing: bool=True, missing_text='unspecified') -> None:
         self.root_path = root_path
         self.missing_text = missing_text
 
@@ -118,7 +121,7 @@ class EpicKitchensAnnotations:
         action_df = pd.read_csv(os.path.join(
             ann_path, f'EPIC_100_{split}.csv'))
         action_df['filename'] = action_df.apply(lambda d: os.path.join(
-            self.root_path, d.participant_id, 'videos', f'{d.video_id}.MP4'), axis=1)
+            self.root_path, 'videos', d.participant_id, f'{d.video_id}.MP4'), axis=1)
         if filter_existing:
             action_df = action_df[action_df.filename.apply(os.path.isfile)]
         if not len(action_df):
@@ -181,12 +184,13 @@ class VideoTextDataset(Dataset):
         )
 
         # the image pre-processing
-        # self.image_transform = T.Compose([
-        #     # T.Lambda(lambda img: img.convert(image_mode) if img.mode != image_mode else img) if image_mode else None,
-        #     # T.RandomResizedCrop(image_size, scale=(resize_ratio, 1.), ratio=(1., 1.)),
-        #     T.ToTensor(),
-        #     # T.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)) # why are these values hard-coded?
-        # ])
+        self.image_transform = T.Compose([
+            T.ToPILImage(),
+            T.Lambda(lambda img: img.convert(image_mode) if img.mode != image_mode else img) if image_mode else None,
+            T.RandomResizedCrop(image_size, scale=(resize_ratio, 1.), ratio=(1., 1.)),
+            T.ToTensor(),
+            T.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)) # why are these values hard-coded?
+        ])
         self.tokenizer = tokenizer or self._tokenizer
 
     def __len__(self):
@@ -198,12 +202,10 @@ class VideoTextDataset(Dataset):
     def __getitem__(self, idx: int):
         clip, video_idx, (start_idx, stop_idx), fps = self.videos.get_clip(idx, return_frames=True)
         descs = self.annotations.get_descriptions(
-            video_idx, start_idx, len(clip), 
+            video_idx, start_idx, self.videos.clip_size, 
             1. * fps / (self.videos.frame_rate or fps))
-        print(descs)
-        # clip = self.image_transform(clip)
-        clip = torch.tensor(clip)
-        descs = self.tokenizer(descs)
+        clip = self.image_transform(clip)
+        descs = self.tokenizer(descs)[0]
         return clip, descs
 
 
