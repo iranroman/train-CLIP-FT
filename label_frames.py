@@ -46,8 +46,11 @@ for video_id, act_stamps in PNN_dict[participant_id].items():
         start_frame = start_frame + 1 if start_frame % 2 == 1 else start_frame
 
         for frame in range(start_frame,stop_frame,2):
-            assert os.path.isfile(os.path.join(frames_path, participant_id, video_id,'{:07}.jpg'.format(frame)))
-            frame_file = os.path.join(labels_path,'{:07d}.txt'.format(frame))
+            if not os.path.isfile(os.path.join(frames_path, participant_id, video_id,'{:07}.jpg'.format(frame))):
+                print('participant {} video {} frame {} not found'.format(participant_id,video_id,frame))
+                
+            else:
+                frame_file = os.path.join(labels_path,'{:07d}.txt'.format(frame))
 
-            with open(frame_file, 'a+') as f:
-                f.write(action + '\n')
+                with open(frame_file, 'a+') as f:
+                    f.write(action + '\n')
