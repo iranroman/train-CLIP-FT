@@ -10,7 +10,9 @@ from transformers import AutoTokenizer, AutoModel
 
 
 def main(hparams):
-    clp, preprocess = clip.load("ViT-B/16", device='cpu')
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    clp, preprocess = clip.load("ViT-B/32", device='cpu')
 
     if hparams.minibatch_size < 1:
         hparams.minibatch_size = hparams.batch_size
