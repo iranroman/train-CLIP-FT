@@ -18,7 +18,9 @@ class TextImageDataset(Dataset):
                  image_size=224,
                  resize_ratio=0.75,
                  shuffle=False,
-                 custom_tokenizer=False
+                 custom_tokenizer=False,
+                 participant=None,
+                 video=None
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
@@ -32,12 +34,10 @@ class TextImageDataset(Dataset):
         super().__init__()
         self.shuffle = shuffle
         path = Path(folder)
+        img_path = path / f'frames/{participant}/{video}'
 
-        text_files = [*path.glob('**/*.txt')]
-        image_files = [
-            *path.glob('**/*.png'), *path.glob('**/*.jpg'),
-            *path.glob('**/*.jpeg'), *path.glob('**/*.bmp')
-        ]
+        text_files = [*path.glob(f'labels_narration/{participant}/{video}/*.txt')]
+        image_files = [*img_path.glob('*.jpg')]
 
         text_files = {text_file.stem: text_file for text_file in text_files}
         image_files = {image_file.stem: image_file for image_file in image_files}
