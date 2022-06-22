@@ -1,7 +1,7 @@
 import csv
 import os
 from operator import itemgetter
-from pathlin import Path
+from pathlib import Path
 
 filename='epic-kitchens-100-annotations/EPIC_100_train.csv'
 frames_path = '/vast/irr2020/EPIC-KITCHENS/frames'
