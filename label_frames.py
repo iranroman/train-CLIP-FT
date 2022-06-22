@@ -38,7 +38,7 @@ for participant_id, PNN_NN_dict in PNN_dict.items():
             continue
 
         # get labels path and create it if needed
-        labels_path = os.path.join(frames_path[:6],'labels',participant_id,video_id)
+        labels_path = os.path.join(frames_path[:-6],'labels',participant_id,video_id)
         if not os.path.isdir:
             os.makedirs(labels_path)
 
