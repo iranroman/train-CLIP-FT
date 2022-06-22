@@ -39,10 +39,8 @@ for participant_id, PNN_NN_dict in PNN_dict.items():
 
         # get labels path and create it if needed
         labels_path = os.path.join(frames_path[:6],'labels',participant_id,video_id)
-        try:
+        if not os.path.isdir:
             os.makedirs(labels_path)
-        except OSError:
-            pass
 
         for act_stamp in act_stamps:
             action, start_frame, stop_frame = act_stamp
@@ -51,9 +49,8 @@ for participant_id, PNN_NN_dict in PNN_dict.items():
             for frame in range(start_frame,stop_frame,2):
                 assert os.path.isfile(os.path.join(frames_path, participant_id, video_id,'{:07}.jpg'.format(frame)))
                 frame_file = os.path.join(labels_path,'{:07d}.txt'.format(frame))
-                try:
+                if not os.path.isfile(frame_file)
                     Path(frame_file).touch()
-                except OSError:
-                    pass
+
                 with open(frame_file, 'a') as f:
                     f.write(action + '\n')
