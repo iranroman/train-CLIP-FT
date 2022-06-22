@@ -4,8 +4,6 @@ import sys
 from operator import itemgetter
 from pathlib import Path
 
-PNN = sys.argv[1]
-
 filename='epic-kitchens-100-annotations/EPIC_100_train.csv'
 frames_path = '/vast/irr2020/EPIC-KITCHENS/frames'
 ann_lines = []
@@ -28,8 +26,9 @@ for line in ann_lines:
     if video_id not in PNN_dict[participant_id]: PNN_dict[participant_id][video_id] = []
     PNN_dict[participant_id][video_id].append([narration, start_frame, stop_frame])
 
+participant_id = sys.argv[1]
 #for participant_id, PNN_NN_dict in PNN_dict.items():
-for video_id, act_stamps in PNN_dict[PNN].items():
+for video_id, act_stamps in PNN_dict[participant_id].items():
     # see if video frames exist
     try:
         if not os.path.isdir(os.path.join(frames_path,participant_id,video_id)):
